@@ -3,7 +3,6 @@ import paho.mqtt.client as mqtt
 import requests
 import pymongo
 import json
-import fungsi_publish as pub
 
 BROKER_ADDRESS = '192.168.43.201'
 MQTT_PORT = 1883

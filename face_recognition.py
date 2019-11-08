@@ -32,9 +32,11 @@ def fungsirecognetion():
         ret, img =cam.read()
         #img = cv2.flip(img, -1) # Flip vertically
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        cl1=clahe.apply(gray)
 
         faces = faceCascade.detectMultiScale(
-            gray,
+            cl1,
             scaleFactor = 1.2,
             minNeighbors = 5,
             minSize = (int(minW), int(minH)),
@@ -42,9 +44,9 @@ def fungsirecognetion():
 
         for(x,y,w,h) in faces:
             cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
-            id, confidence = recognizer.predict(gray[y:y+h,x:x+w])
+            id, confidence = recognizer.predict(cl1[y:y+h,x:x+w])
             hasil=confidence
-            #cv2.imshow('camera',img)
+            cv2.imshow('camera',img)
             ''''
             if (confidence < 37):
                 id = names[id]
@@ -56,9 +58,9 @@ def fungsirecognetion():
                 confidence_per = "  {0}%".format(round(100-confidence))
                 cv2.putText(img, str(id), (x+5,y-5), font, 1, (255,255,255), 2)
                 cv2.putText(img, str(confidence), (x+5,y+h-5), font, 1, (255,255,0), 1)'''
-                
+
         print("confidence: ", hasil)
-        if(confidence < 37):
+        if(confidence < 34):
             kecocokan="{0}%".format(round(100-confidence))
             print(" {0}%".format(round(100-confidence)))
 
@@ -73,9 +75,10 @@ def fungsirecognetion():
             send.postmongo(nama, kecocokan, waktu)
             send.fungsiThingboard(id)
             servo=1
+            print("\n [INFO] Exiting Program and cleanup stuff")
+            cam.release()
+            cv2.destroyAllWindows()
             return servo
-            break
-
         else:
             print(" {0}%".format(round(100-confidence)))
             print("kunci pintu")
@@ -92,8 +95,10 @@ def fungsirecognetion():
                 send.postmongo(nama, kecocokan, waktu)
                 send.fungsiThingboard(idmaling)
                 servo=0
+                print("\n [INFO] Exiting Program and cleanup stuff")
+                cam.release()
+                cv2.destroyAllWindows()
                 return servo
-                break
 
         k = cv2.waitKey(delay=20) # Press 'ESC' for exiting video
         if k == 27:
