@@ -20,5 +20,4 @@ def postmongo(a,b,c):
     'Waktu':c
     }
     result=posts.insert_one(posts_data)
-    print('One post:{0}'.format(result.inserted_id))
-    print("berhasil di upload ke mongodb")
+    print('berhasil di upload ke mongodb:{0}'.format(result.inserted_id))

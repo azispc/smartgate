@@ -9,8 +9,6 @@ def fungsirecognetion():
     recognizer.read('trainer/trainer.yml')
     cascadePath = "haarcascade_frontalface_default.xml"
     faceCascade = cv2.CascadeClassifier(cascadePath);
-    #eyeCascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-
     font = cv2.FONT_HERSHEY_SIMPLEX
 
     #iniciate id counter
@@ -34,71 +32,57 @@ def fungsirecognetion():
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         cl1=clahe.apply(gray)
-
         faces = faceCascade.detectMultiScale(
             cl1,
             scaleFactor = 1.2,
             minNeighbors = 5,
             minSize = (int(minW), int(minH)),
            )
-
         for(x,y,w,h) in faces:
             cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
             id, confidence = recognizer.predict(cl1[y:y+h,x:x+w])
             hasil=confidence
             cv2.imshow('camera',img)
-            ''''
-            if (confidence < 37):
-                id = names[id]
-                confidence_per = "  {0}%".format(round(100-confidence))
-                cv2.putText(img, str(id), (x+5,y-5), font, 1, (255,255,255), 2)
-                cv2.putText(img, str(confidence), (x+5,y+h-5), font, 1, (255,255,0), 1)
-            else:
-                id = "Bukan"
-                confidence_per = "  {0}%".format(round(100-confidence))
-                cv2.putText(img, str(id), (x+5,y-5), font, 1, (255,255,255), 2)
-                cv2.putText(img, str(confidence), (x+5,y+h-5), font, 1, (255,255,0), 1)'''
-
-        print("confidence: ", hasil)
-        if(confidence < 34):
-            kecocokan="{0}%".format(round(100-confidence))
-            print(" {0}%".format(round(100-confidence)))
-
-            nama=names[id]
-            print("buka kunci", names[id])
-
-            #print("Kirim Data Waktu!")
-
-            waktu=time.asctime(time.localtime(time.time()))
-            print (time.asctime( time.localtime(time.time()) ))
-
-            send.postmongo(nama, kecocokan, waktu)
-            send.fungsiThingboard(id)
-            servo=1
-            print("\n [INFO] Exiting Program and cleanup stuff")
-            cam.release()
-            cv2.destroyAllWindows()
-            return servo
-        else:
-            print(" {0}%".format(round(100-confidence)))
-            print("kunci pintu")
-            counter=counter+1
-            if(counter==15):
+            if(confidence<37):
                 kecocokan="{0}%".format(round(100-confidence))
-                idmaling=0
-                nama="maling"
+                print("cocok", kecocokan)
 
-                print("kunci pintu")
-                #print("kirim notifikasi pemilik rumah")
+                nama=names[id]
                 waktu=time.asctime(time.localtime(time.time()))
-                print (time.asctime( time.localtime(time.time()) ))
+                print (waktu)
+
+                #sending to database
                 send.postmongo(nama, kecocokan, waktu)
-                send.fungsiThingboard(idmaling)
-                servo=0
+                send.fungsiThingboard(id)
+                servo=1
+                print("buka kunci", names[id])
+
+                #tutup camera
                 print("\n [INFO] Exiting Program and cleanup stuff")
                 cam.release()
                 cv2.destroyAllWindows()
                 return servo
+            else:
+                kecocokan="{0}%".format(round(100-confidence))
+                print("tidak cocok")
+                counter=counter+1
+                if(counter==15):
+                    kecocokan="{0}%".format(round(100-confidence))
+                    idmaling=0
+                    nama="maling"
+
+                    waktu=time.asctime(time.localtime(time.time()))
+                    print (waktu)
+
+                    send.postmongo(nama, kecocokan, waktu)
+                    send.fungsiThingboard(idmaling)
+                    print("kunci pintu")
+                    servo=0
+                    #tutup camera
+                    print("\n [INFO] Exiting Program and cleanup stuff")
+                    cam.release()
+                    cv2.destroyAllWindows()
+                    return servo
 
         k = cv2.waitKey(delay=20) # Press 'ESC' for exiting video
         if k == 27:
